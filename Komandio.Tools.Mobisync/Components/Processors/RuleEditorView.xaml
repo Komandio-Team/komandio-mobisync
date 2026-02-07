@@ -1,0 +1,125 @@
+<UserControl x:Class="Komandio.Tools.Mobisync.Components.Processors.RuleEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:Komandio.Tools.Mobisync.Converters"
+             xmlns:processors="clr-namespace:Komandio.Tools.Mobisync.Components.Processors"
+             d:DataContext="{d:DesignInstance processors:RuleEditorViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="450" d:DesignWidth="800"
+             ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+             ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:InverseBooleanConverter x:Key="InverseBool"/>
+        <converters:RegexHighlightConverter x:Key="RegexHighlight"/>
+    </UserControl.Resources>
+    <Border Style="{StaticResource CardStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="Auto"/> <!-- Fields -->
+                <RowDefinition Height="*"/>    <!-- Test Bench (Fills remaining space) -->
+                <RowDefinition Height="Auto"/> <!-- Footer -->
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,32">
+                <StackPanel>
+                    <TextBlock Text="RULE CONFIGURATION" FontSize="20" FontWeight="Black" Foreground="{StaticResource TextMainBrush}"/>
+                    <TextBlock Text="Modify extraction logic and visual output" Foreground="{StaticResource TextDimBrush}" FontSize="12"/>
+                </StackPanel>
+                <ui:Button Command="{Binding DeleteCommand}" Icon="{ui:SymbolIcon Delete24}" Appearance="Danger" HorizontalAlignment="Right" Width="32" Height="32" Padding="0" 
+                           Visibility="{Binding Rule.IsBuiltIn, Converter={StaticResource BoolToVis}, ConverterParameter=Inverse}"/>
+            </Grid>
+
+            <!-- Fields -->
+            <Grid Grid.Row="1" Margin="0,0,0,32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="RULE NAME" Style="{StaticResource StatLabelStyle}" FontSize="10" FontWeight="Black"/>
+                    <ui:TextBox Text="{Binding Rule.Name, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Rule.IsBuiltIn, Converter={StaticResource InverseBool}}" Background="#0a0b10" BorderBrush="{StaticResource BorderBrush}" Margin="0,6,0,0"/>
+                    
+                    <TextBlock Text="REGEX PATTERN" Style="{StaticResource StatLabelStyle}" FontSize="10" FontWeight="Black" Margin="0,20,0,0"/>
+                    <ui:TextBox Text="{Binding Rule.Regex, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" Background="#0a0b10" BorderBrush="{StaticResource BorderBrush}" Margin="0,6,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                    <TextBlock Text="OUTPUT TITLE" Style="{StaticResource StatLabelStyle}" FontSize="10" FontWeight="Black"/>
+                    <ui:TextBox Text="{Binding Rule.TitleTemplate, UpdateSourceTrigger=PropertyChanged}" Background="#0a0b10" BorderBrush="{StaticResource BorderBrush}" Margin="0,6,0,0"/>
+
+                    <TextBlock Text="OUTPUT DESCRIPTION" Style="{StaticResource StatLabelStyle}" FontSize="10" FontWeight="Black" Margin="0,20,0,0"/>
+                    <ui:TextBox Text="{Binding Rule.DescriptionTemplate, UpdateSourceTrigger=PropertyChanged}" Background="#0a0b10" BorderBrush="{StaticResource BorderBrush}" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Test Bench -->
+            <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,24,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Code24" Foreground="{StaticResource AccentBlueBrush}" FontSize="16"/>
+                            <TextBlock Text="LIVE LOG" FontSize="10" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <ComboBox Width="80" Height="24" Padding="8,0" FontSize="9" FontWeight="Normal" Margin="0,0,8,0"
+                                      ItemsSource="{Binding AvailableFontSizes}" 
+                                      SelectedItem="{Binding SelectedFontSize}"
+                                      Background="#0a0b10" BorderBrush="{StaticResource BorderBrush}"/>
+                            
+                            <ComboBox Width="180" Height="24" Padding="8,0" FontSize="9" FontWeight="Normal"
+                                      ItemsSource="{Binding StyleOptions}" 
+                                      DisplayMemberPath="Value"
+                                      SelectedValuePath="Key"
+                                      SelectedValue="{Binding SelectedStyle}"
+                                      Background="#0a0b10" BorderBrush="{StaticResource BorderBrush}"/>
+
+                            <ui:Button Width="28" Height="24" Margin="8,0,0,0" Padding="0"
+                                       Command="{Binding OpenExternalCommand}"
+                                       Icon="{ui:SymbolIcon Document24}"
+                                       Appearance="Secondary"
+                                       ToolTip="Open log in default system editor"/>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <Border Grid.Row="1" CornerRadius="12" Background="#0a0b10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="12">
+                        <RichTextBox x:Name="TestBenchBox" 
+                                     Background="Transparent" BorderThickness="0" 
+                                     IsReadOnly="True" IsDocumentEnabled="True"
+                                     HorizontalScrollBarVisibility="Auto"
+                                     VerticalScrollBarVisibility="Auto"
+                                     FontFamily="Consolas" 
+                                     FontSize="10">
+                            <RichTextBox.Resources>
+                                <Style TargetType="Paragraph">
+                                    <Setter Property="Margin" Value="0,0,0,2"/>
+                                </Style>
+                            </RichTextBox.Resources>
+                        </RichTextBox>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Footer -->
+            <ui:Button Grid.Row="3"
+                       Content="SAVE CONFIGURATION"
+                       Command="{Binding SaveCommand}"
+                       Background="{StaticResource AccentBlueBrush}"
+                       Foreground="White"
+                       HorizontalAlignment="Right"
+                       Margin="0,32,0,0"
+                       Padding="32,10"
+                       FontWeight="Bold"
+                       FontSize="11"/>
+        </Grid>
+    </Border>
+</UserControl>

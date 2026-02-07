@@ -1,0 +1,168 @@
+<UserControl x:Class="Komandio.Tools.Mobisync.Components.SystemIntel.SystemIntelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:intel="clr-namespace:Komandio.Tools.Mobisync.Components.SystemIntel"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance intel:SystemIntelViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="600" d:DesignWidth="800"
+             ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+             ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,24,0">
+            <!-- Hardware Section -->
+            <StackPanel Margin="0,0,0,24">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <ui:SymbolIcon Symbol="DeveloperBoard24" Foreground="{StaticResource AccentBlueBrush}" FontSize="18"/>
+                    <TextBlock Text="HARDWARE DIAGNOSTICS" Style="{StaticResource ModuleTitleStyle}" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextDimBrush}" FontSize="12" FontWeight="Black"/>
+                </StackPanel>
+
+                <UniformGrid Columns="3" Rows="2">
+                    <!-- CPU -->
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,12,12" Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="40" Height="40" CornerRadius="8" Background="#1a5e5ce6">
+                                <ui:SymbolIcon Symbol="DeveloperBoard24" Foreground="{StaticResource AccentBlueBrush}"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="PROCESSOR (CPU)" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding CpuName}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding CpuCores}" FontSize="10" Foreground="{StaticResource TextDimBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- GPU -->
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,12,12" Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="40" Height="40" CornerRadius="8" Background="#1a5e5ce6">
+                                <ui:SymbolIcon Symbol="TopSpeed24" Foreground="{StaticResource AccentBlueBrush}"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="GRAPHICS (GPU)" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding GpuName}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding GpuMemory}" FontSize="10" Foreground="{StaticResource TextDimBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- RAM -->
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12" Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="40" Height="40" CornerRadius="8" Background="#1a5e5ce6">
+                                <ui:SymbolIcon Symbol="Save24" Foreground="{StaticResource AccentBlueBrush}"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="PHYSICAL RAM" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding RamTotal}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding RamUsage}" FontSize="10" Foreground="{StaticResource TextDimBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Display -->
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,12,0" Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="40" Height="40" CornerRadius="8" Background="#1a5e5ce6">
+                                <ui:SymbolIcon Symbol="Tv24" Foreground="{StaticResource AccentBlueBrush}"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="DISPLAY OUTPUT" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding DisplayRes}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding DisplayHz}" FontSize="10" Foreground="{StaticResource TextDimBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Input -->
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,12,0" Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="40" Height="40" CornerRadius="8" Background="#1a5e5ce6">
+                                <ui:SymbolIcon Symbol="XboxController24" Foreground="{StaticResource AccentBlueBrush}"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="INPUT CONFIG" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding Peripherals}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Peripherals}"/>
+                                <TextBlock Text="DirectInput v1.08" FontSize="10" Foreground="{StaticResource TextDimBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+
+            <!-- Network Section -->
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <ui:SymbolIcon Symbol="Globe24" Foreground="{StaticResource AccentEmeraldBrush}" FontSize="18"/>
+                    <TextBlock Text="NETWORK TOPOLOGY" Style="{StaticResource ModuleTitleStyle}" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextDimBrush}" FontSize="12" FontWeight="Black"/>
+                </StackPanel>
+
+                <Border Style="{StaticResource CardStyle}" Padding="0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left Col -->
+                        <StackPanel Grid.Column="0" Margin="24" VerticalAlignment="Center">
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="ACTIVE SHARD ID" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding ShardId}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="ENVIRONMENT" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding Environment}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="ACCOUNT ID" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                <TextBlock Text="{Binding AccountId}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Right Col (Darker) -->
+                        <Border Grid.Column="1" Background="#1A000000" Padding="24">
+                            <StackPanel VerticalAlignment="Center">
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="PRIMARY ENDPOINT" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                    <TextBlock Text="{Binding Endpoint}" FontSize="10" FontFamily="Consolas" Foreground="{StaticResource TextMainBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="SESSION GUID" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                    <TextBlock Text="{Binding SessionId}" FontSize="10" FontFamily="Consolas" Foreground="{StaticResource TextMainBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="BUILD STRING" FontSize="9" FontWeight="Black" Foreground="{StaticResource TextSlateBrush}"/>
+                                    <TextBlock Text="{Binding BuildVersion}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMainBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

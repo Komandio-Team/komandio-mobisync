@@ -1,0 +1,65 @@
+<UserControl x:Class="Komandio.Tools.Mobisync.Components.Dashboard.DashboardFeedView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:Komandio.Tools.Mobisync.Converters"
+             xmlns:dashboard="clr-namespace:Komandio.Tools.Mobisync.Components.Dashboard"
+             d:DataContext="{d:DesignInstance dashboard:DashboardFeedViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="450" d:DesignWidth="800"
+             ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+             ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="DASHBOARD FEED" Style="{StaticResource ModuleTitleStyle}" VerticalAlignment="Center" Margin="0"/>
+                
+                <!-- Search Filter -->
+                <Grid Margin="32,0,0,0" VerticalAlignment="Center">
+                    <ui:TextBox x:Name="SearchBox"
+                                Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
+                                PlaceholderText="Filter events..."
+                                Width="200" Height="24" FontSize="9" Padding="8,0,8,0"
+                                Icon="{ui:SymbolIcon Search24}"
+                                Background="#1a000000" BorderBrush="{StaticResource BorderBrush}"/>
+                </Grid>
+            </StackPanel>
+            
+            <ui:Button Command="{Binding ClearFeedCommand}" Content="CLEAR FEED" Icon="Delete24"
+                       Appearance="Transparent"
+                       HorizontalAlignment="Right" FontSize="9" FontWeight="Black"
+                       Foreground="{StaticResource TextSlateBrush}" />
+        </Grid>
+        <ListView Grid.Row="1" ItemsSource="{Binding FilteredEvents}" 
+                  ItemTemplate="{StaticResource EventRowTemplate}"
+                  Background="Transparent" BorderThickness="0"
+                  Padding="0,0,12,0"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                  VirtualizingStackPanel.ScrollUnit="Pixel"
+                  VirtualizingStackPanel.CacheLengthUnit="Item"
+                  VirtualizingStackPanel.CacheLength="10,10"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListViewItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+    </Grid>
+</UserControl>

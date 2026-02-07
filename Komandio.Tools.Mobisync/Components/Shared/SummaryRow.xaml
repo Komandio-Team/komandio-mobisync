@@ -1,0 +1,24 @@
+<UserControl x:Class="Komandio.Tools.Mobisync.Components.Shared.SummaryRow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             d:DesignHeight="50" d:DesignWidth="300"
+             ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+             ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+             mc:Ignorable="d">
+    <Grid Margin="0,6">
+        <StackPanel Orientation="Horizontal">
+            <ui:SymbolIcon Symbol="{Binding Icon, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                           Foreground="{StaticResource TextDimBrush}" FontSize="16" Margin="0,0,12,0"/>
+            <TextBlock Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                       FontSize="13" FontWeight="Black" Foreground="{StaticResource TextDimBrush}" 
+                       VerticalAlignment="Center"/>
+        </StackPanel>
+        <TextBlock Text="{Binding Value, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                   FontSize="13" FontWeight="Bold" FontFamily="Consolas" 
+                   Foreground="{Binding Color, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+    </Grid>
+</UserControl>

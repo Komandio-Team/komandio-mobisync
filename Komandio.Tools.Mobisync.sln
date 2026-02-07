@@ -1,0 +1,32 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Komandio.Tools.Mobisync", "Komandio.Tools.Mobisync\Komandio.Tools.Mobisync.csproj", "{069E16B6-94D8-4335-BF29-10E6536E5FA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Komandio.Tools.Mobisync.Tests", "Komandio.Tools.Mobisync.Tests\Komandio.Tools.Mobisync.Tests.csproj", "{B88F2E65-4DB4-42D2-A405-B212D19CA2CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{069E16B6-94D8-4335-BF29-10E6536E5FA5}.Debug|x64.ActiveCfg = Debug|x64
+		{069E16B6-94D8-4335-BF29-10E6536E5FA5}.Debug|x64.Build.0 = Debug|x64
+		{069E16B6-94D8-4335-BF29-10E6536E5FA5}.Release|x64.ActiveCfg = Release|x64
+		{069E16B6-94D8-4335-BF29-10E6536E5FA5}.Release|x64.Build.0 = Release|x64
+		{B88F2E65-4DB4-42D2-A405-B212D19CA2CE}.Debug|x64.ActiveCfg = Debug|x64
+		{B88F2E65-4DB4-42D2-A405-B212D19CA2CE}.Debug|x64.Build.0 = Debug|x64
+		{B88F2E65-4DB4-42D2-A405-B212D19CA2CE}.Release|x64.ActiveCfg = Release|x64
+		{B88F2E65-4DB4-42D2-A405-B212D19CA2CE}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C1B65A47-744D-4EE6-8E9A-A1BCBF812D6E}
+	EndGlobalSection
+EndGlobal

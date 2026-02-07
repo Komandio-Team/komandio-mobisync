@@ -1,0 +1,46 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Exact HTML Replica Palette from sketch.html -->
+    <Color x:Key="MainBackgroundColor">#080a0f</Color> <!-- Content Area -->
+    <Color x:Key="CardBackgroundColor">#0c0f16</Color> <!-- App Container/Cards -->
+    <Color x:Key="HeaderBackgroundColor">#0f121a</Color> <!-- Sidebar/TitleBar -->
+
+    <SolidColorBrush x:Key="MainBackgroundBrush" Color="{StaticResource MainBackgroundColor}" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}" />
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource HeaderBackgroundColor}" />
+
+    <!-- Window Background (Solid to match Sketch Container) -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource CardBackgroundColor}" />
+
+    <!-- Accents -->
+    <Color x:Key="AccentBlueColor">#3b82f6</Color> <!-- blue-500 -->
+    <Color x:Key="AccentEmeraldColor">#10b981</Color>
+    <Color x:Key="AccentCyanColor">#06b6d4</Color>
+    <Color x:Key="AccentOrangeColor">#fb923c</Color>
+    <Color x:Key="AccentRedColor">#ef4444</Color>
+    <Color x:Key="AccentPurpleColor">#bc13fe</Color>
+
+    <SolidColorBrush x:Key="AccentBlueBrush" Color="{StaticResource AccentBlueColor}" />
+    <SolidColorBrush x:Key="AccentEmeraldBrush" Color="{StaticResource AccentEmeraldColor}" />
+    <SolidColorBrush x:Key="AccentCyanBrush" Color="{StaticResource AccentCyanColor}" />
+    <SolidColorBrush x:Key="AccentOrangeBrush" Color="{StaticResource AccentOrangeColor}" />
+    <SolidColorBrush x:Key="AccentRedBrush" Color="{StaticResource AccentRedColor}" />
+    <SolidColorBrush x:Key="AccentPurpleBrush" Color="{StaticResource AccentPurpleColor}" />
+
+    <!-- Borders & Text -->
+    <Color x:Key="BorderColor">#1e293b</Color> <!-- slate-800 -->
+    
+    <Color x:Key="TextMainColor">#cbd5e1</Color> <!-- slate-300 -->
+    <Color x:Key="TextDimColor">#94a3b8</Color> <!-- slate-400 -->
+    <Color x:Key="TextSlateColor">#64748b</Color> <!-- slate-500 -->
+    <Color x:Key="TextDarkSlateColor">#475569</Color> <!-- slate-600 -->
+
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    
+    <SolidColorBrush x:Key="TextMainBrush" Color="{StaticResource TextMainColor}" />
+    <SolidColorBrush x:Key="TextDimBrush" Color="{StaticResource TextDimColor}" />
+    <SolidColorBrush x:Key="TextSlateBrush" Color="{StaticResource TextSlateColor}" />
+    <SolidColorBrush x:Key="TextDarkSlateBrush" Color="{StaticResource TextDarkSlateColor}" />
+
+</ResourceDictionary>

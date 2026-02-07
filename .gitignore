@@ -1,0 +1,111 @@
+# Binaries
+bin/
+obj/
+
+# .NET Core and .NET Framework specific
+## Ignore common build outputs
+[Bb]in/
+[Oo]bj/
+[Rr]elease/
+[Dd]ebug/
+[Pp]ublish/
+out/
+
+## Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Ignore Visual Studio temporary files
+.vs/
+*.dotCover
+
+## Ignore generated files
+*.generated.cs
+*.g.cs
+*.g.i.cs
+
+# NuGet Packages
+## Ignore the packages folder, restore on build instead
+packages/
+*.nupkg
+project.lock.json
+
+# Test Results
+TestResult/
+[Tt]est[Rr]esult*/
+*.trx
+
+# Rider / ReSharper specific
+.idea/
+*.sln.iml
+_ReSharper*/
+*.[Rr]esharper
+*.DotSettings.user
+riderModule.iml
+/_ReSharper.Caches/
+
+# Secrets and local configuration
+# Never commit secrets or local-only configuration.
+*.secrets.json
+appsettings.local.json
+secrets.json
+
+# OS generated files
+## Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build reports
+*.log
+*.tlog
+*.buildlog
+
+# Other
+*.zip
+*.rar
+*.7z
+
+# Commits
+commit_message.txt
+
+# External projects and sources
+external/
+screen_capture.jpg
+/src/Komandio.Assets/Models/
+
+# Embeded Python
+/src/Komandio.Assets/Python/
+
+# Agent Binary and Dependencies
+/src/Komandio.Agent/runtime/
+/src/Komandio.Agent/vendor/
+/src/Komandio.Extensions.Web/Runtime/*
+!/src/Komandio.Extensions.Web/Runtime/setup-deno.ps1
+/src/Komandio.Extensions.Web/vendor/
+
+# Deno binary
+**/deno.exe
+
+# Gemini
+.gemini/
+
+# ONNX models
+*.onnx
+
+# Dev public key - ignore anywhere in the project
+**/public.dev.key
+
+# Installer output
+setup/Output/
+
+# SDK Build Output
+sdk/dist/

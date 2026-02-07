@@ -1,0 +1,589 @@
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { 
+  Shield, 
+  User, 
+  MapPin, 
+  Clock, 
+  Terminal, 
+  Activity, 
+  Navigation, 
+  Cpu, 
+  Play, 
+  Square,
+  Search,
+  ChevronRight,
+  Info,
+  Skull,
+  Crosshair,
+  Briefcase,
+  LayoutDashboard,
+  LocateFixed,
+  Sword,
+  ScrollText,
+  Target,
+  Settings,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  Code2,
+  AlertCircle,
+  Lock,
+  BookOpen,
+  Copy,
+  Lightbulb,
+  RefreshCw,
+  Filter,
+  Globe,
+  ExternalLink,
+  Minus,
+  X,
+  Maximize2,
+  Monitor,
+  Zap,
+  Server,
+  MousePointer2,
+  HardDrive
+} from 'lucide-react';
+
+// --- Default Processor Definitions ---
+const INITIAL_PROCESSORS = [
+  { id: 'p1', name: 'Pilot Identity', category: 'SYSTEM', regex: 'Handle\\[([^\\]]+)\\].*?AccountID\\[(\\d+)\\]', title: 'Identity Verified', desc: 'Handle: {1} | ID: {2}', icon: 'user', isBuiltIn: true },
+  { id: 'p2', name: 'Jurisdiction', category: 'AREAS', regex: 'Entered (.*?) Jurisdiction', title: 'Jurisdiction Entry', desc: 'Location: {1}', icon: 'map', isBuiltIn: true },
+  { id: 'p3', name: 'Armistice', category: 'AREAS', regex: '(Entering|Leaving) Armistice Zone', title: 'Security Protocol', desc: '{1} Armistice Zone', icon: 'shield', isBuiltIn: true },
+  { id: 'p4', name: 'Combat Death', category: 'KILLS', regex: '<Actor Death> Victim: \'(.*?)\' Killer: \'(.*?)\' \\(Reason: \'(.*?)\'\\)', title: 'Combat Result', desc: '{2} eliminated {1}', icon: 'skull', isBuiltIn: true },
+  { id: 'p5', name: 'Contract Authority', category: 'CONTRACTS', regex: 'gained authority (.*?) \\[', title: 'Task Authorized', desc: 'Mission: {1}', icon: 'briefcase', isBuiltIn: true },
+  { id: 'p6', name: 'Hardware Discovery', category: 'SYSTEM', regex: 'CPU: (.*)|GPU: (.*)|Total Physical Memory: (.*)', title: 'Hardware Detected', desc: 'Component analysis logged', icon: 'cpu', isBuiltIn: true },
+  { id: 'p7', name: 'Network Endpoint', category: 'SYSTEM', regex: 'Endpoint: (.*)', title: 'Server Link', desc: 'Routing through {1}', icon: 'server', isBuiltIn: true },
+];
+
+const SIMULATED_LOG_LINES = [
+  '<2026-02-03T16:31:00.000Z> CPU: Intel Core i9-12900KF (24 Logical Cores)',
+  '<2026-02-03T16:31:01.000Z> GPU: AMD Radeon RX 7900 XTX (24GB VRAM)',
+  '<2026-02-03T16:31:02.000Z> Total Physical Memory: 65,349 MB Detected',
+  '<2026-02-03T16:31:03.000Z> Display: 3440 x 1440 @ 175Hz',
+  '<2026-02-03T16:31:04.000Z> Peripherals: Detected Dual VKBsim Gladiator EVO (L & R)',
+  '<2026-02-03T16:31:12.213Z> BackupNameAttachment=" Build(11135423) 03 Feb 26 (18 31 04)"',
+  '<2026-02-03T16:31:13.000Z> Endpoint: pub-sc-alpha-460-11135423.test1.cloudimperiumgames.com',
+  '<2026-02-03T16:45:12.213Z> [Lobby][CAccountCharacterProxy::FinalizeLogin] Handle[de2pf0rest] AccountID[4402318]',
+  '<2026-02-03T16:50:31.000Z> [MISSION] SubsumptionMissionComponent gained authority Alliance_Aid [0000-1111] - InitState: VariablesInitialized',
+  '<2026-02-03T16:52:00.000Z> Entering Armistice Zone',
+  '<2026-02-03T17:25:39.000Z> Entered Hurston Dynamics Jurisdiction',
+  '<2026-02-03T17:35:10.000Z> Leaving Armistice Zone',
+  '<2026-02-03T17:40:00.000Z> <Actor Death> Victim: \'Xenothreat Raider\' Killer: \'de2pf0rest\' (Reason: \'Ballistic Damage\')',
+  '<2026-02-03T17:42:21.000Z> Entered ArcCorp Jurisdiction',
+  '<2026-02-03T18:05:00.000Z> [MISSION] SubsumptionMissionComponent gained authority RedWind_Delivery [2222-3333]',
+  '<2026-02-03T18:30:00.000Z> <Actor Death> Victim: \'Pirate Interceptor\' Killer: \'de2pf0rest\' (Reason: \'Explosion\')',
+  '<2026-02-03T18:35:00.000Z> Session Uptime: 7200s'
+];
+
+// --- Helper: Icon Mapper ---
+const IconComponent = ({ name, size = 16, className = "" }) => {
+  const icons = {
+    user: User, map: MapPin, shield: Shield, skull: Skull, 
+    briefcase: Briefcase, cpu: Cpu, server: Server, 
+    terminal: Terminal, activity: Activity, monitor: Monitor,
+    zap: Zap, mouse: MousePointer2, storage: HardDrive
+  };
+  const Icon = icons[name] || icons.activity;
+  return <Icon size={size} className={className} />;
+};
+
+const App = () => {
+  const [currentView, setCurrentView] = useState('DASHBOARD');
+  const [processors, setProcessors] = useState(INITIAL_PROCESSORS);
+  const [events, setEvents] = useState([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [testRegex, setTestRegex] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const [processedLines, setProcessedLines] = useState(0);
+  const totalLines = SIMULATED_LOG_LINES.length;
+
+  const [stats, setStats] = useState({
+    pilot: 'de2pf0rest',
+    accountId: '4402318',
+    build: '11135423 (Alpha 4.6.0)',
+    env: 'PUB (Public Live)',
+    jurisdiction: 'Deep Space',
+    uptime: '00:00:00',
+    inArmistice: false,
+    kills: 0,
+    activeContracts: 0,
+    cpu: 'Intel Core i9-12900KF',
+    gpu: 'AMD Radeon RX 7900 XTX',
+    ram: '64 GB (65,349 MB)',
+    display: '3440 x 1440 @ 175Hz',
+    peripherals: 'VKB Gladiator EVO Dual-Stick',
+    shard: 'local_shard',
+    endpoint: 'pub-sc-alpha-460.test1.cloudimperiumgames.com',
+    sessionId: '32bdd9f4-d72c-084f-88e1-2563cf011118'
+  });
+
+  const scrollRef = useRef(null);
+
+  const handleStartStop = () => {
+    if (!isRunning) {
+        setProcessedLines(0);
+        setEvents([]);
+    }
+    setIsRunning(!isRunning);
+  };
+
+  useEffect(() => {
+    let timeout;
+    if (isRunning) {
+      let index = 0;
+      const processNextLine = () => {
+        const line = SIMULATED_LOG_LINES[index % SIMULATED_LOG_LINES.length];
+        const timestamp = line.match(/<([^>]+)>/)?.[1] || new Date().toISOString();
+        setProcessedLines(prev => prev < totalLines ? prev + 1 : totalLines);
+
+        processors.forEach(proc => {
+          try {
+            const re = new RegExp(proc.regex);
+            const match = line.match(re);
+            if (match) {
+              let title = proc.title;
+              let desc = proc.desc;
+              match.forEach((val, i) => {
+                if (i === 0 || !val) return;
+                title = title.replace(`{${i}}`, val);
+                desc = desc.replace(`{${i}}`, val);
+              });
+
+              const newEvent = {
+                id: `evt_${Date.now()}_${index}`,
+                type: proc.id,
+                category: proc.category || 'CUSTOM',
+                title,
+                desc,
+                iconName: proc.icon,
+                time: timestamp,
+                meta: match.slice(1).reduce((acc, curr, i) => ({ ...acc, [`group_${i+1}`]: curr }), {})
+              };
+
+              if (proc.id === 'p1') setStats(s => ({ ...s, pilot: match[1], accountId: match[2] }));
+              if (proc.id === 'p2') setStats(s => ({ ...s, jurisdiction: match[1] }));
+              if (proc.id === 'p3') setStats(s => ({ ...s, inArmistice: match[1].includes("Entering") }));
+              if (proc.id === 'p4' && match[2] === stats.pilot) setStats(s => ({ ...s, kills: s.kills + 1 }));
+              if (proc.id === 'p5') setStats(s => ({ ...s, activeContracts: s.activeContracts + 1 }));
+
+              setEvents(prev => [...prev.slice(-199), newEvent]);
+            }
+          } catch (e) { }
+        });
+
+        index++;
+        timeout = setTimeout(processNextLine, 1200);
+      };
+      processNextLine();
+    }
+    return () => clearTimeout(timeout);
+  }, [isRunning, processors, stats.pilot, totalLines]);
+
+  const eventCounts = useMemo(() => ({
+    AREAS: events.filter(e => e.category === 'AREAS').length,
+    KILLS: events.filter(e => e.category === 'KILLS' && (e.meta.group_2 === stats.pilot || e.meta.group_1 === stats.pilot)).length,
+    CONTRACTS: events.filter(e => e.category === 'CONTRACTS').length,
+    SYSTEM: events.filter(e => e.category === 'SYSTEM').length,
+    ALL: events.length
+  }), [events, stats.pilot]);
+
+  const filteredEvents = useMemo(() => {
+    let base = events;
+    if (currentView === 'DASHBOARD') base = events.slice(-50);
+    else if (currentView === 'KILLS') {
+        base = events.filter(e => e.category === 'KILLS' && (e.meta.group_2 === stats.pilot || e.meta.group_1 === stats.pilot));
+    } else {
+        base = events.filter(e => e.category === currentView);
+    }
+
+    if (!searchQuery) return base;
+    const query = searchQuery.toLowerCase();
+    return base.filter(e => e.title.toLowerCase().includes(query) || e.desc.toLowerCase().includes(query));
+  }, [events, currentView, stats.pilot, searchQuery]);
+
+  // Processor CRUD logic moved strictly inside App
+  const addProcessor = () => {
+    const newProc = { id: `custom_${Date.now()}`, name: 'NEW_RULE', category: 'CUSTOM', regex: 'pattern', title: 'Match Found', desc: 'Captured: {1}', icon: 'terminal', isBuiltIn: false };
+    setProcessors([...processors, newProc]);
+  };
+
+  const updateProcessor = (id, field, value) => {
+    setProcessors(processors.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const deleteProcessor = (id) => {
+    setProcessors(processors.filter(p => p.id !== id && !p.isBuiltIn));
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[#14161d] p-4 lg:p-6 font-sans">
+      <div className="w-full max-w-[1400px] h-[90vh] bg-[#0c0f16] rounded-xl overflow-hidden flex flex-col shadow-[0_30px_90px_rgba(0,0,0,0.8)] border border-white/5 relative">
+        
+        {/* Windows 11 Title Bar */}
+        <div className="h-9 bg-[#0f121a] flex items-center justify-between px-4 select-none shrink-0 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <Activity size={14} className="text-blue-500" />
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Komandio Mobisync // Intelligence Interface</span>
+          </div>
+          <div className="flex h-full">
+            <button className="px-4 hover:bg-white/5 transition-colors flex items-center h-full"><Minus size={14} className="text-slate-500"/></button>
+            <button className="px-4 hover:bg-white/5 transition-colors flex items-center h-full"><Square size={10} className="text-slate-500"/></button>
+            <button className="px-4 hover:bg-red-500 transition-colors flex items-center h-full group"><X size={14} className="text-slate-500 group-hover:text-white"/></button>
+          </div>
+        </div>
+
+        <div className="flex flex-grow overflow-hidden">
+          {/* Sidebar */}
+          <aside className="w-56 border-r border-slate-800 bg-[#0f121a]/95 backdrop-blur-2xl flex flex-col shrink-0">
+            <div className="p-5 border-b border-slate-800 flex flex-col gap-1 bg-[#0f121a]">
+              <h1 className="text-sm font-black tracking-tighter text-slate-100 uppercase italic">MOBISYNC <span className="text-blue-500 ml-1">V4</span></h1>
+              <p className="text-[7px] font-black text-blue-500/60 uppercase tracking-[0.3em]">POWERED BY KOMANDIO</p>
+            </div>
+            
+            <nav className="flex-grow p-2 space-y-1 overflow-y-auto custom-scrollbar">
+              <NavItem active={currentView === 'DASHBOARD'} icon="activity" label="Dashboard" onClick={() => setCurrentView('DASHBOARD')} count={eventCounts.ALL} />
+              <div className="pt-4 pb-1 px-3 text-[9px] font-bold text-slate-600 uppercase tracking-widest">Telemetry</div>
+              <NavItem active={currentView === 'AREAS'} icon="map" label="Areas" onClick={() => setCurrentView('AREAS')} count={eventCounts.AREAS} />
+              <NavItem active={currentView === 'KILLS'} icon="skull" label="Combat" onClick={() => setCurrentView('KILLS')} count={eventCounts.KILLS} />
+              <NavItem active={currentView === 'CONTRACTS'} icon="briefcase" label="Contracts" onClick={() => setCurrentView('CONTRACTS')} count={eventCounts.CONTRACTS} />
+              <div className="pt-4 pb-1 px-3 text-[9px] font-bold text-slate-600 uppercase tracking-widest">Environment</div>
+              <NavItem active={currentView === 'SYSTEM'} icon="cpu" label="System Intel" onClick={() => setCurrentView('SYSTEM')} count={eventCounts.SYSTEM} />
+              <NavItem active={currentView === 'PROCESSORS'} icon="terminal" label="Processors" onClick={() => setCurrentView('PROCESSORS')} />
+            </nav>
+
+            {/* Platform Branding Footer */}
+            <div className="p-4 border-t border-slate-800 bg-black/40">
+              <a href="https://www.komandio.com/" target="_blank" rel="noopener noreferrer" className="flex flex-col gap-2 group p-2.5 rounded-lg border border-transparent hover:border-blue-900/40 hover:bg-blue-900/10 transition-all duration-300">
+                 <div className="flex items-center justify-between">
+                   <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-widest group-hover:text-blue-400">Platform Ecosystem</span>
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+                 </div>
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Globe size={11} className="text-slate-500 group-hover:text-blue-500" />
+                      <span className="text-[9px] font-black text-slate-400 group-hover:text-slate-100 tracking-tight">KOMANDIO.COM</span>
+                    </div>
+                    <ExternalLink size={9} className="text-slate-700 group-hover:text-blue-500 opacity-0 group-hover:opacity-100" />
+                 </div>
+              </a>
+            </div>
+          </aside>
+
+          <div className="flex-grow flex flex-col bg-[#080a0f] relative overflow-hidden">
+            <header className="h-12 border-b border-slate-800 bg-[#0c0f16] flex items-center justify-between px-6 shrink-0">
+               <div className="flex items-center gap-6">
+                 <span className="text-[10px] font-mono text-slate-600 tracking-tighter uppercase">SHARD: {stats.shard}</span>
+                 {isRunning && (
+                   <div className="flex items-center gap-4 border-l border-slate-800 pl-6">
+                      <div className="flex items-center gap-3">
+                        <RefreshCw size={10} className="text-blue-500 animate-spin" />
+                        <span className="text-[10px] font-mono text-blue-500">{processedLines} / {totalLines} LOGS</span>
+                      </div>
+                      <div className="w-24 bg-slate-800 h-1 rounded-full overflow-hidden">
+                        <div className="bg-blue-500 h-full transition-all duration-300" style={{ width: `${(processedLines / totalLines) * 100}%` }} />
+                      </div>
+                   </div>
+                 )}
+               </div>
+               <button onClick={handleStartStop} className={`px-5 py-1.5 rounded text-[10px] font-black uppercase tracking-widest transition-all ${isRunning ? "bg-red-500/10 text-red-500 border border-red-500/30" : "bg-blue-600 text-white shadow-xl shadow-blue-500/20"}`}>
+                 {isRunning ? 'DISCONNECT' : 'INITIALIZE'}
+               </button>
+            </header>
+
+            <main className="flex-grow overflow-hidden p-6 flex flex-col gap-6">
+              {currentView === 'SYSTEM' ? (
+                <SystemView stats={stats} />
+              ) : currentView === 'PROCESSORS' ? (
+                <ProcessorManagement processors={processors} onAdd={addProcessor} onUpdate={updateProcessor} onDelete={deleteProcessor} />
+              ) : (
+                <>
+                  <div className="grid grid-cols-4 gap-4 shrink-0">
+                    <DashboardStatCard iconName="map" label="ACTIVE_JURISDICTION" value={stats.jurisdiction} />
+                    <DashboardStatCard iconName="shield" label="ZONE_PROTOCOL" value={stats.inArmistice ? "SECURED" : "OPEN"} />
+                    <DashboardStatCard iconName="skull" label="COMBAT_CONFIRMATIONS" value={stats.kills} />
+                    <DashboardStatCard iconName="zap" label="HARDWARE_GPU" value={stats.gpu.split(' ').slice(-3).join(' ')} />
+                  </div>
+
+                  <div className="flex-grow grid grid-cols-12 gap-5 overflow-hidden">
+                    {currentView === 'DASHBOARD' && (
+                      <div className="col-span-4 bg-[#0c0f16] border border-slate-800 rounded-lg p-5 flex flex-col shadow-2xl">
+                        <div className="mb-6 flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-full bg-blue-600/20 border border-blue-500/50 flex items-center justify-center text-blue-400 font-bold">PI</div>
+                           <div>
+                              <h2 className="text-xs font-black uppercase text-slate-100 tracking-wider">Pilot Profile</h2>
+                              <p className="text-[10px] text-blue-500 font-mono">UID: {stats.accountId}</p>
+                           </div>
+                        </div>
+                        <div className="space-y-1.5 flex-grow">
+                          <SummaryRow iconName="user" label="Handle" value={stats.pilot} color="text-blue-400" />
+                          <SummaryRow iconName="server" label="Shard" value={stats.shard} />
+                          <SummaryRow iconName="clock" label="Session" value={stats.uptime} />
+                          <SummaryRow iconName="zap" label="GPU" value={stats.gpu.replace("AMD Radeon ", "")} color="text-emerald-400" />
+                          <SummaryRow iconName="mouse" label="Input" value="Dual Joysticks" />
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[8px] font-black text-slate-600 uppercase tracking-widest">
+                           <span>Env: {stats.env}</span>
+                           <span>Ver: {stats.build.split(' ')[0]}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className={`${currentView === 'DASHBOARD' ? 'col-span-8' : 'col-span-12'} bg-[#0c0f16] border border-slate-800 rounded-lg flex flex-col overflow-hidden shadow-2xl`}>
+                       <div className="px-5 py-3 border-b border-slate-800 bg-black/20 flex justify-between items-center text-[10px] font-black">
+                         <span className="uppercase text-slate-400 tracking-widest">{currentView} INTEL FEED</span>
+                         <div className="relative flex items-center">
+                            <Search size={12} className="absolute left-3 text-slate-600" />
+                            <input type="text" placeholder="Filter..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-black/30 border border-slate-800 rounded px-8 py-1 text-[10px] w-40 focus:outline-none focus:border-blue-600" />
+                         </div>
+                       </div>
+                       <div ref={scrollRef} className="flex-grow overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
+                          {filteredEvents.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center opacity-10">
+                              <Terminal size={60} className="mb-4 text-slate-500" />
+                              <p className="text-[10px] font-black uppercase tracking-[0.3em]">Buffer Empty</p>
+                            </div>
+                          ) : filteredEvents.map((e) => <EventRow key={e.id} event={e} />)}
+                       </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </main>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- View: System Stats ---
+const SystemView = ({ stats }) => (
+  <div className="flex-grow overflow-y-auto custom-scrollbar space-y-6 animate-in fade-in duration-500">
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <IconComponent name="cpu" size={18} className="text-blue-500" />
+        <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em]">Hardware Diagnostics</h3>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <SystemCard label="Processor (CPU)" value={stats.cpu} sub="24 Logical Cores Detected" iconName="cpu" />
+        <SystemCard label="Graphics (GPU)" value={stats.gpu} sub="24GB Dedicated VRAM" iconName="zap" />
+        <SystemCard label="Physical RAM" value={stats.ram} sub="~56% In-Use at Startup" iconName="storage" />
+        <SystemCard label="Display Output" value={stats.display} sub="HDR High Dynamic Range" iconName="monitor" />
+        <SystemCard label="Input Config" value={stats.peripherals} sub="DirectInput v1.08" iconName="mouse" />
+      </div>
+    </div>
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <IconComponent name="server" size={18} className="text-emerald-500" />
+        <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.2em]">Network Topology</h3>
+      </div>
+      <div className="bg-[#0c0f16] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+        <div className="grid grid-cols-2 divide-x divide-slate-800">
+          <div className="p-6 space-y-4">
+             <InfoRow label="Active Shard ID" value={stats.shard} />
+             <InfoRow label="Environment" value={stats.env} />
+             <InfoRow label="Account ID" value={stats.accountId} />
+          </div>
+          <div className="p-6 space-y-4 bg-black/10">
+             <InfoRow label="Primary Endpoint" value={stats.endpoint} font="font-mono text-[10px]" />
+             <InfoRow label="Session GUID" value={stats.sessionId} font="font-mono text-[9px]" />
+             <InfoRow label="Build String" value={stats.build} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SystemCard = ({ label, value, sub, iconName }) => (
+  <div className="bg-[#0c0f16] border border-slate-800 p-5 rounded-xl flex items-start gap-4 hover:border-blue-500/30 transition-all group shadow-sm">
+    <div className="p-3 bg-slate-900 rounded-lg text-slate-500 group-hover:text-blue-400 transition-colors">
+      <IconComponent name={iconName} size={20} />
+    </div>
+    <div className="flex-grow min-w-0">
+      <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{label}</span>
+      <p className="text-xs font-bold text-slate-200 mt-1 truncate">{value}</p>
+      <p className="text-[10px] text-slate-500 font-medium mt-0.5">{sub}</p>
+    </div>
+  </div>
+);
+
+const InfoRow = ({ label, value, font = "" }) => (
+  <div className="flex flex-col gap-1">
+    <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{label}</span>
+    <span className={`text-xs font-bold text-slate-300 ${font}`}>{value}</span>
+  </div>
+);
+
+// --- Sub-View: Processor Management ---
+const ProcessorManagement = ({ processors, onAdd, onUpdate, onDelete }) => {
+  const [selectedId, setSelectedId] = useState(processors[0]?.id);
+  const selected = processors.find(p => p.id === selectedId);
+
+  return (
+    <div className="flex-grow flex flex-col gap-5 overflow-hidden">
+      <div className="grid grid-cols-12 gap-5 flex-grow overflow-hidden">
+        <div className="col-span-4 flex flex-col gap-5 overflow-hidden">
+          <div className="bg-[#0c0f16] border border-slate-800 rounded-lg p-4 flex flex-col h-1/2 overflow-hidden shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Logic Stores</h3>
+              <button onClick={onAdd} className="p-1.5 bg-blue-600 hover:bg-blue-500 rounded text-white shadow-md"><Plus size={14}/></button>
+            </div>
+            <div className="flex-grow overflow-y-auto space-y-1 custom-scrollbar pr-2">
+              {processors.map(p => (
+                <button key={p.id} onClick={() => setSelectedId(p.id)} className={`w-full text-left p-2 rounded border transition-all ${selectedId === p.id ? 'bg-blue-600/10 border-blue-500/40 shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]' : 'bg-transparent border-transparent hover:bg-slate-800/50'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 rounded bg-slate-800 border ${selectedId === p.id ? 'border-blue-500 text-blue-500' : 'border-slate-700 text-slate-600'}`}>
+                      <IconComponent name={p.icon} size={14} />
+                    </div>
+                    <div className="flex-grow overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] font-black uppercase truncate text-slate-300">{p.name}</div>
+                        {p.isBuiltIn && <span className="text-[7px] font-black bg-blue-500/20 text-blue-500 uppercase px-1 py-0.5 rounded ml-2 tracking-tighter">CORE</span>}
+                      </div>
+                      <div className="text-[9px] font-mono text-slate-600 truncate">{p.regex}</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="bg-[#0c0f16] border border-slate-800 rounded-lg flex flex-col h-1/2 overflow-hidden shadow-lg">
+            <div className="p-3 border-b border-slate-800 flex items-center gap-2 bg-slate-900/50">
+              <BookOpen size={14} className="text-slate-400" />
+              <h3 className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Capture Manual</h3>
+            </div>
+            <div className="p-4 overflow-y-auto custom-scrollbar space-y-3">
+               <GuideSample label="ELEVATOR" pattern="State changed to (\w+)" template="St: {1}" />
+               <GuideSample label="ENTITY" pattern="spawned (\d+) entities" template="Cnt: {1}" />
+               <p className="text-[9px] text-slate-500 italic mt-2">Use parenthesis for groups. Inject with {'{1}'}, {'{2}'} etc.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-span-8 flex flex-col gap-5 overflow-hidden">
+          {selected ? (
+            <div className="bg-[#0c0f16] border border-slate-800 rounded-lg p-5 flex flex-col h-full overflow-hidden shadow-2xl">
+              <div className="flex justify-between items-start mb-4 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="bg-slate-900 p-2 rounded border border-slate-800">
+                    <IconComponent name={selected.icon} size={14} className="text-blue-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2 text-slate-200">
+                      {selected.name}
+                      {selected.isBuiltIn && <Lock size={12} className="text-blue-500 opacity-50" />}
+                    </h2>
+                    <p className="text-[9px] font-mono text-slate-600">{selected.id}</p>
+                  </div>
+                </div>
+                {!selected.isBuiltIn && <button onClick={() => onDelete(selected.id)} className="p-2 rounded bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500/20"><Trash2 size={16}/></button>}
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4 shrink-0">
+                <InputGroup label="Descriptor" value={selected.name} onChange={v => onUpdate(selected.id, 'name', v)} disabled={selected.isBuiltIn} />
+                <InputGroup label="RegExp Extraction" value={selected.regex} onChange={v => onUpdate(selected.id, 'regex', v)} font="font-mono" />
+                <InputGroup label="UI Title Hook" value={selected.title} onChange={v => onUpdate(selected.id, 'title', v)} />
+                <InputGroup label="UI Body Hook" value={selected.desc} onChange={v => onUpdate(selected.id, 'desc', v)} />
+              </div>
+              <div className="border-t border-slate-800 pt-4 flex-grow flex flex-col min-h-0 overflow-hidden">
+                <div className="flex items-center justify-between mb-2 shrink-0 px-1 font-black uppercase text-[9px] tracking-widest text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="text-blue-500" size={12} />
+                    <span>Real-time Console</span>
+                  </div>
+                  <span className="text-slate-600">KOMANDIO_DATA_LINK</span>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] bg-slate-900 border border-slate-800 rounded-t px-3 py-1.5 text-[8px] font-black text-slate-500 uppercase tracking-widest shrink-0">
+                   <div>ISO_TIMESTAMP</div>
+                   <div>LOG_PAYLOAD</div>
+                </div>
+                <div className="bg-black/60 border-x border-b border-slate-800 rounded-b flex-grow overflow-auto custom-scrollbar font-mono text-[9px] leading-tight">
+                  {SIMULATED_LOG_LINES.map((line, i) => {
+                    const tsMatch = line.match(/^<([^>]+)>/);
+                    const ts = tsMatch ? tsMatch[1] : '...';
+                    const msg = line.replace(/^<[^>]+>\s*/, '');
+                    return (
+                      <div key={i} className="grid grid-cols-[160px_1fr] border-b border-slate-800/10 hover:bg-slate-800/20 py-0.5 px-3">
+                        <div className="text-slate-600 whitespace-nowrap overflow-hidden">{ts}</div>
+                        <div className="text-slate-400 truncate pl-3 border-l border-slate-800/30">{msg}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-grow bg-[#0c0f16] border border-slate-800 border-dashed rounded-lg flex flex-col items-center justify-center text-slate-700">
+               <AlertCircle size={32} className="mb-2 opacity-50" />
+               <p className="text-[10px] font-bold uppercase tracking-widest">Select logic store to audit</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Atomic Components ---
+const GuideSample = ({ label, pattern, template }) => (
+  <div className="bg-black/60 rounded border border-slate-800 p-2 space-y-0.5 overflow-hidden">
+    <div className="text-[8px] font-black text-slate-500 tracking-tighter uppercase">{label}</div>
+    <div className="text-[8px] font-mono text-emerald-700 truncate tracking-tighter">P: {pattern}</div>
+    <div className="text-[8px] font-mono text-blue-700 truncate tracking-tighter">T: {template}</div>
+  </div>
+);
+
+const NavItem = ({ active, icon, label, onClick, count = null }) => (
+  <button onClick={onClick} className={`w-full flex items-center justify-between px-3 py-2 rounded transition-all group ${active ? "bg-white/10 text-white shadow-sm border border-white/5" : "text-slate-500 hover:bg-white/5 hover:text-slate-300"}`}>
+    <div className="flex items-center gap-3">
+      <span className={active ? "text-blue-500" : "opacity-60"}><IconComponent name={icon} size={16} /></span>
+      <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+    </div>
+    {count !== null && (
+      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-md ${active ? 'bg-blue-600 text-white' : 'bg-[#1a1c24] text-slate-600'}`}>{count}</span>
+    )}
+  </button>
+);
+
+const DashboardStatCard = ({ iconName, label, value }) => (
+  <div className="bg-[#0c0f16] border border-white/5 p-4 rounded-lg flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
+    <div className="absolute -right-2 -bottom-2 opacity-5 scale-150 rotate-12"><IconComponent name={iconName} size={32} /></div>
+    <span className="text-[7px] font-black text-slate-600 uppercase tracking-[0.15em]">{label}</span>
+    <span className="text-xs font-black text-slate-200 tracking-tight truncate uppercase">{value}</span>
+  </div>
+);
+
+const SummaryRow = ({ iconName, label, value, color = "text-slate-300" }) => (
+  <div className="flex items-center justify-between py-1.5 text-[10px] border-b border-slate-800/50 last:border-0">
+    <div className="flex items-center gap-2 text-slate-600 font-bold uppercase tracking-tighter">
+      <IconComponent name={iconName} size={12} />
+      <span>{label}</span>
+    </div>
+    <span className={`font-mono font-black ${color} truncate max-w-[120px]`}>{value}</span>
+  </div>
+);
+
+const EventRow = ({ event }) => (
+  <div className="flex gap-4 p-2 rounded-md border border-slate-800/50 bg-[#0c0f16]/30 hover:bg-[#1a1c24] transition-all group">
+    <div className={`w-7 h-7 shrink-0 rounded flex items-center justify-center bg-slate-900 border border-slate-800 ${event.category === 'KILLS' ? 'border-red-900/50 text-red-500' : 'text-slate-400'}`}>
+      <IconComponent name={event.iconName} size={14} />
+    </div>
+    <div className="flex-grow overflow-hidden">
+      <div className="flex justify-between items-center mb-0.5">
+        <h4 className={`text-[9px] font-black uppercase tracking-widest ${event.category === 'KILLS' ? 'text-red-500' : 'text-slate-300'}`}>{event.title}</h4>
+        <span className="text-[8px] font-mono text-slate-600">{new Date(event.time).toLocaleTimeString([], {hour12: false})}</span>
+      </div>
+      <p className="text-[10px] text-slate-500 font-mono leading-tight truncate">{event.desc}</p>
+    </div>
+  </div>
+);
+
+const InputGroup = ({ label, value, onChange, font = "", disabled = false }) => (
+  <div className="flex flex-col gap-1.5">
+    <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{label}</label>
+    <input type="text" value={value} disabled={disabled} onChange={e => onChange(e.target.value)} className={`bg-black/40 border border-white/5 rounded px-2.5 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-blue-600 transition-all ${font} ${disabled ? 'opacity-30 cursor-not-allowed' : 'hover:border-white/10'}`} />
+  </div>
+);
+
+export default App;
