@@ -333,6 +333,9 @@ namespace Komandio.Tools.Mobisync.Services
 
         [GeneratedRegex(@"AccountID\[(?<id>\d+)\]", RegexOptions.IgnoreCase)]
         public static partial Regex AccountId();
+
+        [GeneratedRegex(@"requested inventory for Location\[(?<loc>[^\]]+)\]", RegexOptions.IgnoreCase)]
+        public static partial Regex InventoryRequest();
     }
 
     public interface ILogEventProcessor
@@ -419,10 +422,19 @@ namespace Komandio.Tools.Mobisync.Services
     {
         private readonly ISettingsService _settings;
         public LocationRequestProcessor(ISettingsService settings) => _settings = settings;
-        public bool CanProcess(string line) => line.Contains("Location[") || line.Contains("Obstructing Entity") || line.Contains("ATC Location:") || line.Contains("Station_DockingTube");
+        public bool CanProcess(string line) => line.Contains("Location[") || line.Contains("Obstructing Entity") || line.Contains("ATC Location:") || line.Contains("Station_DockingTube") || line.Contains("requested inventory");
         public GameEvent? Process(string line)
         {
             var ts = LogMonitorService.ParseTimestamp(line);
+            
+            var inv = LogRegex.InventoryRequest().Match(line);
+            if (inv.Success)
+            {
+                var locId = inv.Groups["loc"].Value;
+                var name = _settings.LocationMapping.TryGetValue(locId, out var n) ? n : locId;
+                return new LocationChangeEvent(ts, name);
+            }
+
             var atc = LogRegex.AtcLocation().Match(line);
             if (atc.Success && _settings.LocationMapping.TryGetValue(atc.Groups["loc"].Value, out var n1)) return new LocationChangeEvent(ts, n1);
             var dock = LogRegex.StationDocking().Match(line);
