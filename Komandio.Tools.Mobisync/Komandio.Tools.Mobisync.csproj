@@ -11,6 +11,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyName>MobiSync</AssemblyName>
     <RootNamespace>Komandio.Tools.Mobisync</RootNamespace>
+    <ApplicationIcon>applicationIcon.ico</ApplicationIcon>
     
     <!-- Single File & Self-Contained Config -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -45,6 +46,11 @@
     
         <ItemGroup>
           <EmbeddedResource Include="Data\locations.json" />
+        </ItemGroup>
+    
+        <ItemGroup>
+          <None Remove="applicationIcon.ico" />
+          <Content Include="applicationIcon.ico" />
         </ItemGroup>
           
       </Project>    

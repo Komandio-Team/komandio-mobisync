@@ -12,6 +12,7 @@ public partial class AreasViewModel : ObservableObject
 {
     private readonly ICollectionView _eventsView;
     [ObservableProperty] private string _searchQuery = string.Empty;
+    [ObservableProperty] private string _jurisdiction = "DEEP SPACE";
 
     public AreasViewModel()
     {
@@ -22,6 +23,11 @@ public partial class AreasViewModel : ObservableObject
         {
             var isSilent = m is SilentStateUpdateEvent;
             var actualEvent = m is SilentStateUpdateEvent silent ? silent.WrappedEvent : m;
+
+            if (actualEvent is JurisdictionEvent j)
+            {
+                Jurisdiction = j.Name.ToUpper();
+            }
 
             var uiEvent = EventMapper.Map(actualEvent);
             if (uiEvent != null && uiEvent.Category == "AREAS")
@@ -49,8 +55,15 @@ public partial class AreasViewModel : ObservableObject
 
         WeakReferenceMessenger.Default.Register<ClearFeedsMessage>(this, (r, m) =>
         {
-            if (Application.Current != null) Application.Current.Dispatcher.Invoke(() => Events.Clear());
-            else Events.Clear();
+            if (Application.Current != null) Application.Current.Dispatcher.Invoke(() => {
+                Events.Clear();
+                Jurisdiction = "DEEP SPACE";
+            });
+            else 
+            {
+                Events.Clear();
+                Jurisdiction = "DEEP SPACE";
+            }
         });
     }
 

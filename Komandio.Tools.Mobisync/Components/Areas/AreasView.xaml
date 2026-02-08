@@ -4,51 +4,62 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:shared="clr-namespace:Komandio.Tools.Mobisync.Components.Shared"
              xmlns:areas="clr-namespace:Komandio.Tools.Mobisync.Components.Areas"
              d:DataContext="{d:DesignInstance areas:AreasViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="450" d:DesignWidth="800"
              ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
              ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
              mc:Ignorable="d">
-    <Border Style="{StaticResource CardStyle}">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Margin="0,0,0,20">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="AREAS TELEMETRY" Style="{StaticResource ModuleTitleStyle}" VerticalAlignment="Center" Margin="0"/>
-                    <Grid Margin="32,0,0,0" VerticalAlignment="Center">
-                        <ui:TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
-                                    PlaceholderText="Filter areas..."
-                                    Width="200" Height="24" FontSize="9" Padding="8,0,8,0"
-                                    Icon="{ui:SymbolIcon Search24}"
-                                    Background="#1a000000" BorderBrush="{StaticResource BorderBrush}"/>
-                    </Grid>
-                </StackPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Current Jurisdiction Widget -->
+        <shared:StatCard Grid.Row="0" Label="ACTIVE JURISDICTION" Value="{Binding Jurisdiction}" Icon="ShieldLock24" IconColor="{StaticResource AccentCyanBrush}" Margin="0,0,0,24"/>
+
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,0,0,20">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="AREAS TELEMETRY" Style="{StaticResource ModuleTitleStyle}" VerticalAlignment="Center" Margin="0"/>
+                        <Grid Margin="32,0,0,0" VerticalAlignment="Center">
+                            <ui:TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
+                                        PlaceholderText="Filter areas..."
+                                        Width="200" Height="24" FontSize="9" Padding="8,0,8,0"
+                                        Icon="{ui:SymbolIcon Search24}"
+                                        Background="#1a000000" BorderBrush="{StaticResource BorderBrush}"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+                <ListView Grid.Row="1" ItemsSource="{Binding FilteredEvents}" 
+                          ItemTemplate="{StaticResource EventRowTemplate}"
+                          Background="Transparent" BorderThickness="0"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          VirtualizingStackPanel.ScrollUnit="Pixel"
+                          VirtualizingStackPanel.CacheLengthUnit="Item"
+                          VirtualizingStackPanel.CacheLength="10,10"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListViewItem">
+                                        <ContentPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
             </Grid>
-            <ListView Grid.Row="1" ItemsSource="{Binding FilteredEvents}" 
-                      ItemTemplate="{StaticResource EventRowTemplate}"
-                      Background="Transparent" BorderThickness="0"
-                      VirtualizingStackPanel.IsVirtualizing="True"
-                      VirtualizingStackPanel.VirtualizationMode="Recycling"
-                      VirtualizingStackPanel.ScrollUnit="Pixel"
-                      VirtualizingStackPanel.CacheLengthUnit="Item"
-                      VirtualizingStackPanel.CacheLength="10,10"
-                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListViewItem">
-                                    <ContentPresenter />
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
-        </Grid>
-    </Border>
+        </Border>
+    </Grid>
 </UserControl>
